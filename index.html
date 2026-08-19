@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,40 +7,50 @@
     <!-- Merkeziyetsiz veritabanı (Gun.js) -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 </head>
-<body style="max-width: 600px; margin: 0 auto; padding: 10px;"> <!-- Mobil uyum için ufak bir kenar boşluğu eklendi -->
-    <!-- Mesajların listeleneceği sade alan -->
-    <div id="mesajlar" style="margin-bottom: 20px; height: 350px; overflow-y: auto; font-family: sans-serif; font-size: 14px;"></div>
+<body style="max-width: 600px; margin: 0 auto; padding: 10px;"> 
+
+    <!-- THE CETABURG NETWORK LOGO ALANI -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/3254/3254068.png" alt="Cetaburg Logo" width="80" height="80">
+        <h2 style="font-family: sans-serif; margin-top: 10px; color: #333;">The Cetaburg Network</h2>
+    </div>
+
+    <!-- Mesajların listeleneceği alan -->
+    <div id="mesajlar" style="margin-bottom: 20px; height: 400px; overflow-y: auto; font-family: sans-serif; font-size: 15px; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #ddd;"></div>
 
     <!-- Orijinal tasarımın -->
-    <form action="" name="mesajkutusu" method="post" id="mesajFormu">
-        <input type="text" name="mesaj" placeholder="Mesaj Yazın...">
-        <input type="submit" name="gonder" value="Gönder">
+    <form action="" name="mesajkutusu" method="post" id="mesajFormu" style="display: flex; gap: 5px;">
+        <input type="text" name="mesaj" placeholder="Mesaj Yazın..." style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none;">
+        <input type="submit" name="gonder" value="Gönder" style="padding: 10px 20px; background-color: #333; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
     </form>
 
     <br>
-    <br>
-    <!-- Çıkış yapabilmek için basit bir buton -->
-    <button id="cikisYap" style="font-size: 12px; cursor: pointer;">Hesaptan Çıkış Yap</button>
+    <div style="text-align: right;">
+        <button id="cikisYap" style="font-size: 12px; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; background: white; border-radius: 5px;">Hesaptan Çıkış Yap</button>
+    </div>
 
     <script>
-        // Gun.js ağına bağlan
-        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
-        const chat = gun.get('cetaburg-network-v4'); // Ağ anahtarı
+        // Telefonların ve bilgisayarların birbirini bulması için aktif P2P sunucuları
+        const gun = Gun([
+            'https://gun-vue.xyz/gun',
+            'https://peer.wallie.io/gun',
+            'https://gun-server.juhari.dev/gun'
+        ]);
         
-        // Tarayıcı hafızasından kullanıcı bilgilerini çek
+        // Ağ anahtarı (Sitenin ortak odası)
+        const chat = gun.get('cetaburg-network-v6'); 
+        
         let username = localStorage.getItem('cetaburg_username');
         let profilePic = localStorage.getItem('cetaburg_pic');
 
-        // Eğer kullanıcı adı yoksa (siteye yeni veya gizli sekmeden girdiyse) sor
+        // Giriş yapmamışsa isim sor
         if (!username) {
             username = prompt("The Cetaburg Network'e Hoş Geldiniz!\nLütfen bir kullanıcı adı belirleyin:");
-            // İptal'e basarsa rastgele isim ver
             if (!username) username = "Misafir_" + Math.floor(Math.random() * 1000);
             
             profilePic = prompt("Profil resminiz için bir URL girin (İstemiyorsanız boş bırakıp Tamam'a basın):");
             if (!profilePic) profilePic = ""; 
             
-            // Bilgileri bu tarayıcı/sekme için kaydet
             localStorage.setItem('cetaburg_username', username);
             localStorage.setItem('cetaburg_pic', profilePic);
         }
@@ -51,60 +61,57 @@
         
         let mesajListesi = [];
 
-        // Ağdaki mesajları dinle ve ekrana yazdır (Herkes anında görür)
+        // Ağdaki mesajları dinle
         chat.map().once(function(data, id) {
             if (data && data.text) {
                 const exists = mesajListesi.find(m => m.id === id);
                 if (!exists) {
                     mesajListesi.push({ id, ...data });
-                    mesajListesi.sort((a, b) => a.time - b.time); // Zaman sırasına koy
+                    mesajListesi.sort((a, b) => a.time - b.time); // Mesajları saate göre sırala
                     ekranaYazdir();
                 }
             }
         });
 
-        // Mesajları HTML içine sade bir şekilde yerleştir
         function ekranaYazdir() {
             mesajlarAlani.innerHTML = '';
             mesajListesi.forEach(msg => {
-                // Profil resmi varsa soluna ekle
-                const imgTag = msg.pic ? `<img src="${msg.pic}" width="25" height="25" style="vertical-align: middle; border-radius: 50%; margin-right: 5px; object-fit: cover;">` : '';
+                const imgTag = msg.pic ? `<img src="${msg.pic}" width="30" height="30" style="vertical-align: middle; border-radius: 50%; margin-right: 8px; object-fit: cover;">` : '';
                 
                 mesajlarAlani.innerHTML += `
-                    <div style="margin-bottom: 10px;">
-                        ${imgTag}<b>${msg.user}:</b> ${msg.text}
+                    <div style="margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px; word-wrap: break-word;">
+                        ${imgTag}<b style="color: #222;">${msg.user}:</b> <span style="color: #444;">${msg.text}</span>
                     </div>
                 `;
             });
-            // Yeni mesaj gelince en alta kaydır
+            // Yeni mesaj gelince sayfayı en alta kaydır
             mesajlarAlani.scrollTop = mesajlarAlani.scrollHeight;
         }
 
-        // Kendi tasarımın olan Form Gönderildiğinde
+        // Gönder tuşuna basıldığında
         mesajFormu.addEventListener('submit', function(e) {
-            e.preventDefault(); // Sayfanın yenilenmesini durdur
+            e.preventDefault(); 
             
             const input = document.forms["mesajkutusu"]["mesaj"];
             const metin = input.value.trim();
             
             if (metin !== "") {
-                // Mesajı Gun.js (The Cetaburg) ağına gönder
                 chat.set({
                     user: username,
                     pic: profilePic,
                     text: metin,
                     time: Date.now()
                 });
-                input.value = ''; // Kutuyu temizle
+                input.value = ''; 
             }
         });
 
-        // Çıkış Yap Butonu
+        // Çıkış yap butonuna basıldığında
         cikisYapBtn.addEventListener('click', function(e) {
             e.preventDefault();
             localStorage.removeItem('cetaburg_username');
             localStorage.removeItem('cetaburg_pic');
-            location.reload(); // Bilgileri silip sayfayı yenile (Yeni isim sorması için)
+            location.reload(); 
         });
     </script>
 </body>
